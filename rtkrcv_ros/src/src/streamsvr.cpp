@@ -398,11 +398,11 @@ static void *strsvrthread(void *arg)
             strsendnmea(svr->stream,svr->nmeapos);
             ticknmea=tick;
         }
-        lock(&svr->lock);
+        rtklock(&svr->lock);
         for (i=0;i<n&&svr->npb<svr->buffsize;i++) {
             svr->pbuf[svr->npb++]=svr->buff[i];
         }
-        unlock(&svr->lock);
+        rtkunlock(&svr->lock);
         
         sleepms(svr->cycle-(int)(tickget()-tick));
     }
@@ -457,11 +457,11 @@ static void *strsvrthreadRos(void *arg)
             strsendnmea(svr->stream,svr->nmeapos);
             ticknmea=tick;
         }
-        lock(&svr->lock);
+        rtklock(&svr->lock);
         for (i=0;i<n&&svr->npb<svr->buffsize;i++) {
             svr->pbuf[svr->npb++]=svr->buff[i];
         }
-        unlock(&svr->lock);
+        rtkunlock(&svr->lock);
 
         sleepms(svr->cycle-(int)(tickget()-tick));
     }
@@ -703,7 +703,7 @@ extern int strsvrpeek(strsvr_t *svr, unsigned char *buff, int nmax)
     
     if (!svr->state) return 0;
     
-    lock(&svr->lock);
+    rtklock(&svr->lock);
     n=svr->npb<nmax?svr->npb:nmax;
     if (n>0) {
         memcpy(buff,svr->pbuf,n);
@@ -712,6 +712,6 @@ extern int strsvrpeek(strsvr_t *svr, unsigned char *buff, int nmax)
         memmove(svr->pbuf,svr->pbuf+n,svr->npb-n);
     }
     svr->npb-=n;
-    unlock(&svr->lock);
+    rtkunlock(&svr->lock);
     return n;
 }

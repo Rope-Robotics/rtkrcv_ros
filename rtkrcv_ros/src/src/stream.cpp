@@ -225,12 +225,12 @@ static int readseribuff(serial_t *serial, unsigned char *buff, int nmax)
     
     tracet(5,"readseribuff: dev=%d\n",serial->dev);
     
-    lock(&serial->lock);
+    rtklock(&serial->lock);
     for (ns=0;serial->rp!=serial->wp&&ns<nmax;ns++) {
        buff[ns]=serial->buff[serial->rp];
        if (++serial->rp>=serial->buffsize) serial->rp=0;
     }
-    unlock(&serial->lock);
+    rtkunlock(&serial->lock);
     tracet(5,"readseribuff: ns=%d rp=%d wp=%d\n",ns,serial->rp,serial->wp);
     return ns;
 }
@@ -240,7 +240,7 @@ static int writeseribuff(serial_t *serial, unsigned char *buff, int n)
     
     tracet(5,"writeseribuff: dev=%d n=%d\n",serial->dev,n);
     
-    lock(&serial->lock);
+    rtklock(&serial->lock);
     for (ns=0;ns<n;ns++) {
         serial->buff[wp=serial->wp]=buff[ns];
         if (++wp>=serial->buffsize) wp=0;
@@ -250,7 +250,7 @@ static int writeseribuff(serial_t *serial, unsigned char *buff, int n)
             break;
         }
     }
-    unlock(&serial->lock);
+    rtkunlock(&serial->lock);
     tracet(5,"writeseribuff: ns=%d rp=%d wp=%d\n",ns,serial->rp,serial->wp);
     return ns;
 }
@@ -2320,8 +2320,8 @@ extern void strsync(stream_t *stream1, stream_t *stream2)
 * args   : stream_t *stream I  stream
 * return : none
 *-----------------------------------------------------------------------------*/
-extern void strlock  (stream_t *stream) {lock  (&stream->lock);}
-extern void strunlock(stream_t *stream) {unlock(&stream->lock);}
+extern void strlock  (stream_t *stream) {rtklock  (&stream->lock);}
+extern void strunlock(stream_t *stream) {rtkunlock(&stream->lock);}
 
 /* read stream -----------------------------------------------------------------
 * read data from stream (unblocked)
