@@ -48,7 +48,7 @@ include_directories(
 
 set(OPTION -DENAGLO -DENAGAL -DENAQZS -DENACMP -DTRACE -DNFREQ=3 -DNEXOBS=3)
 set(CFLAGS  -O3 -ansi -pedantic -Wno-unused-but-set-variable -Wno-unused-variable -Wno-unused-function ${OPTION} -g)
-add_definitions(${CFLAGS} ${OPTION})
+#add_definitions(${CFLAGS} ${OPTION})
 #############Sources rtklib receivers gnss##############
 set(RTKLIB_RECEIVERS  src/src/rcv/binex.c src/src/rcv/crescent.c src/src/rcv/gw10.c src/src/rcv/javad.c
 src/src/rcv/novatel.c src/src/rcv/nvs.c src/src/rcv/rcvlex.c src/src/rcv/rt17.c src/src/rcv/septentrio.c
