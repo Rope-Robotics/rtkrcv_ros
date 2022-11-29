@@ -33,6 +33,7 @@ extern "C" {
 
 // ROS>
 #include <ros/ros.h>
+#include <ros/console.h>
 #include "rtkrcv_ros/receive_command.h"
 
 extern ros::Publisher *pub;
@@ -1552,7 +1553,11 @@ int main(int argc, char **argv)
     ros::NodeHandle node_handle;
     node=&node_handle;
     strcpy(topic_name, ros::this_node::getName().c_str());
-    
+
+    /* Get parameters */
+    bool debug;
+    node_handle.getParam("/rr_rtk_node/debug", debug);
+
     for (i=1;i<argc;i++) {
         if      (!strcmp(argv[i],"-s")) start=1;
         else if (!strcmp(argv[i],"-p")&&i+1<argc) port=atoi(argv[++i]);
@@ -1606,15 +1611,23 @@ int main(int argc, char **argv)
     signal(SIGPIPE,SIG_IGN);
     
     pthread_create (&ros_srv_thread, NULL, srv_thread, &topic_name);
-    while (!intflg) {
-        /* open console */
-        if (!vt_open(&vt,port,dev)) break;
-        vt_printf(&vt,"\n%s** %s ver.%s console (h:help) **%s\n",ESC_BOLD,
-                  PRGNAME,VER_RTKLIB,ESC_RESET);
-        /* command interpreter */
-        if (login(&vt)) cmdshell(&vt);
-        /* close console */
-        vt_close(&vt);
+
+    if (debug){
+        while (!intflg) {
+            /* open console */
+            if (!vt_open(&vt,port,dev)) break;
+            vt_printf(&vt,"\n%s** %s ver.%s console (h:help) **%s\n",ESC_BOLD,
+                      PRGNAME,VER_RTKLIB,ESC_RESET);
+            /* command interpreter */
+            if (login(&vt)) cmdshell(&vt);
+            /* close console */
+            vt_close(&vt);
+        }
+    }
+    else{
+        while(ros::ok){
+            sleep(100);
+        }
     }
 
     /* stop rtk server */
