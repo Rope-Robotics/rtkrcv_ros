@@ -1321,12 +1321,60 @@ bool srv_cmd_load(char **args, int narg, vt_t *vt, std::string *res)
     return true;
 }
 
+/* set command for the ROS service---------------------------------------------------------------*/
+bool srv_cmd_set(char **args, int narg, vt_t *vt, std::string *res)
+{
+     opt_t *opt;
+        int *modf;
+        char buff[MAXSTR];
+
+        trace(3,"cmd_set:\n");
+
+        if (narg<2) {
+            vt_printf(vt,"specify option type\n");
+            return false;
+        }
+        if ((opt=searchopt(args[1],rcvopts))) {
+            modf=modflgr+(int)(opt-rcvopts);
+        }
+        else if ((opt=searchopt(args[1],sysopts))) {
+            modf=modflgs+(int)(opt-sysopts);
+        }
+        else {
+            vt_printf(vt,"no option type: %s\n",args[1]);
+            return false;
+        }
+        if (narg<3) {
+            vt_printf(vt,"%s",opt->name);
+            if (*opt->comment) vt_printf(vt," (%s)",opt->comment);
+            vt_printf(vt,": ");
+            if (!vt_gets(vt,buff,sizeof(buff))||vt->brk) return false;
+        }
+        else strcpy(buff,args[2]);
+
+        chop(buff);
+        if (!str2opt(opt,buff)) {
+            vt_printf(vt,"invalid option value: %s %s\n",opt->name,buff);
+            return false;
+        }
+        getsysopts(&prcopt,solopt,&filopt);
+
+        vt_printf(vt,"option %s changed.",opt->name);
+        if (strncmp(opt->name,"console",7)) {
+            *modf=1;
+            vt_printf(vt," restart to enable it");
+        }
+        vt_printf(vt,"\n");
+        *res="Option set. Restart to load";
+        return true;
+}
+
 /* ROS service callback -------------------------------------------------------*/
 bool cmd_rcv(rtkrcv_ros::receive_command::Request &cmd, rtkrcv_ros::receive_command::Response &res)
 {
 
     const char *cmds[]={
-        "start","stop","restart","load",""
+        "start","stop","restart","load","set",""
     };
     int i,j,narg;
     char *args[MAXARG],*p;
@@ -1350,6 +1398,7 @@ bool cmd_rcv(rtkrcv_ros::receive_command::Request &cmd, rtkrcv_ros::receive_comm
             case  1: res.success=srv_cmd_stop     (args,narg,vt_ptr,&ack); break;
             case  2: res.success=srv_cmd_restart  (args,narg,vt_ptr,&ack); break;
             case  3: res.success=srv_cmd_load     (args,narg,vt_ptr,&ack); break;
+            case  4: res.success=srv_cmd_set      (args,narg,vt_ptr,&ack); break;
         }
         res.ack_str=ack;
     }
